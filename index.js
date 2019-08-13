@@ -5,16 +5,18 @@ const express = require('express')
 const playerRouter = require('./ORMLogic/playerRouter')
 const moveRouter = require('./ORMLogic/moveRouter')
 const login = require('./auth/router')
-const {Room,Player} = require('./ORMLogic/model')
+const roomRouter= require('./ORMLogic/roomRouter')
+const { Room, Player, Message, Move } = require('./ORMLogic/model')
 
-const port = process.env.PORT||5000
+const port = process.env.PORT || 5000
 const app = express()
 
-const corsMiddleWare= cors()
+const corsMiddleWare = cors()
 const bodyParserMiddleWare = bodyParser.json()
 app.use(corsMiddleWare)
 app.use(bodyParserMiddleWare)
 app.use(playerRouter)
+app.use(roomRouter)
 app.use(moveRouter)
 app.use(login)
 
@@ -24,7 +26,12 @@ const stream = new Sse()
 app.get(
   '/stream',
   async (request, response) => {
-    const rooms = await Room.findAll({include:[[Message],[Player]]})
+    const rooms = await Room.findAll({
+      include: [{
+        model: Player,
+        include: [Move]
+      }]
+    })
     const data = JSON.stringify(rooms)
     stream.updateInit(data)
     stream.init(request, response)
@@ -40,7 +47,7 @@ app.get('/scoreboard', (req, res) => {
   return res.send()
 })
 
-app.listen(port,_=>{console.log(`Server is listening on port ${port}`)})
+app.listen(port, _ => { console.log(`Server is listening on port ${port}`) })
 
-module.exports={stream}
+module.exports = { stream }
 

@@ -3,7 +3,7 @@ const baseURL = process.env.DATABASE_URL || 'postgres://postgres:secret@localhos
 
 const db = new Sequelize(baseURL)
 
-db.sync()
+db.sync({force:false})
 .then(()=>console.log('database is up and running'))
 
 

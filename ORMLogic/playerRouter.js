@@ -16,11 +16,10 @@ route.post('/player', (req, res, next) =>
     )
 
 route.get('/player/:id', (req, res, next) =>
-  Player.findByPk(req.params.id, { include: [Team] })
+  Player.findByPk(req.params.id)
     .then(player => res.json(player))
       .catch(error => next(error))
     )
-
 
 route.put(
   '/player/:id',
