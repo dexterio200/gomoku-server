@@ -1,7 +1,7 @@
 const { Room, Message, Player } = require('./model')
 const { Router } = require('express')
 const router = new Router()
-const { stream } = require('../index')
+const {updateStream} = require('../index')
 
 router.post('/room', async (req, res, next) => {
   try {
@@ -71,15 +71,5 @@ router.delete('/room/delete/:id', async (req, res) => {
     )
     .catch(err => console.error(err))
 })
-
-
-const updateStream = async (req, res) => {
-  const rooms = await Room.findAll({
-    include: [Player]
-  })
-  const data = JSON.stringify(rooms)
-  stream.updateInit(data)
-  stream.init(req, res)
-}
 
 module.exports = router

@@ -1,22 +1,23 @@
 const { Move,Room,Player } = require('./model')
 const { Router } = require('express')
 const route = new Router()
-const {stream} = require('../index')
+const {updateStream} = require('../index')
 
 route.post('/move', async (req, res) => {
-
   const { playerId, x, y, roomId } = req.body
-  let room = await Room.findByPk(roomId)
+  let room = await Room.findByPk(roomId,{include:[{model:Player}]})
 
-  console.log('...')
   if(room.status==="started" && room.turn==playerId){
     await Move.create({playerId,x,y})
+    const nextPlayer = room.players.find((player)=>player.id!=playerId)
+    console.log('nextPlayer',nextPlayer)
+    const room_modified = await room.update({turn:nextPlayer.id})
+    console.log("see here",room_modified)
   }
   room = await Room.findByPk(roomId,{
     include: [{ model: Player, include: [ {model:Move} ] }]
   })
   res.send(room)
-  // updateStream(req,res)
 })
 
 route.delete('/move/delete',async(req,res)=>{
