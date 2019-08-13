@@ -1,6 +1,7 @@
-const {Player} = require('./model')
+const { Player } = require('./model')
 const { Router } = require('express')
 const route = new Router()
+const bcrypt = require('bcrypt')
 
 
 route.get('/player', (req, res, next) =>
@@ -9,24 +10,32 @@ route.get('/player', (req, res, next) =>
     .catch(error => next(error))
 )
 
-route.post('/player', (req, res, next) =>
-  Player.create(req.body)
-    .then(player => res.json(player))
-    .catch(error => next(error))
-    )
+route.post('/player', async (req, res, next) => {
+  try {
+    const { playerName, password } = req.body
+    password = bcrypt.hashSync(req.body.password, 10)
+    const player = await Player.create(playerName, password)
+    res.send(`Player ${player} is created`)
+  } catch (err) {
+    next(err)
+    res.status.send(err)
+  }
+})
 
 route.get('/player/:id', (req, res, next) =>
   Player.findByPk(req.params.id)
     .then(player => res.json(player))
-      .catch(error => next(error))
-    )
+    .catch(error => next(error))
+)
 
 route.put(
   '/player/:id',
   (request, response, next) => {
+    let { playerName, password } = request.body
+    password = bcrypt.hashSync(request.body.password, 10)
     Player
-      .findByPk(req.params.id)
-      .then(player => player.update(request.body))
+      .findByPk(request.params.id)
+      .then(player => player.update({playerName,password}))
       .then(player => response.send(player))
       .catch(next)
   }

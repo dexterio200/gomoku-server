@@ -32,6 +32,7 @@ app.get(
         include: [Move]
       }]
     })
+    console.log(rooms)
     const data = JSON.stringify(rooms)
     stream.updateInit(data)
     stream.init(request, response)

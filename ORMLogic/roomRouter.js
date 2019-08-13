@@ -60,7 +60,6 @@ router.put('/room/join/:id', async (req, res, next) => {
   else {
     res.status(405).send('room is full or game started')
   }
-  //updateStream(req, res)
 })
 
 
