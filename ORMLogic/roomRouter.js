@@ -33,7 +33,7 @@ function factory(updateStream) {
       let firstPlayerToMove = ''
       Math.random() > 0.5 ? firstPlayerToMove = room.players[0].id : firstPlayerToMove = room.players[1].id
       await room.update({ status: 'started', turn: firstPlayerToMove })
-      updateStream(req, res)
+      updateStream()
       res.send('Game Started')
     }
     else (res.send('cannot start game, not enough player joined'))
@@ -53,6 +53,7 @@ function factory(updateStream) {
     else {
       res.status(405).send('room is full or game started')
     }
+    updateStream()
   })
 
 
@@ -60,10 +61,12 @@ function factory(updateStream) {
     await Room.destroy({ where: { id: req.params.id } })
       .then(number => {
         res.send(`${number} record delete`)
+        updateStream()
       }
       )
       .catch(err => console.error(err))
-  })
+  }   
+  )
   return router
 }
 

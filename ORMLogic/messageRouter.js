@@ -8,12 +8,14 @@ const router = new Router()
 router.post('/message', async (req, res) => {
   const { playerName, message, roomId } = req.body
   const text = await Message.create({ userName: playerName, text: message, roomId })
+  updateStream()
   res.json(text)
 })
 
 router.delete('/message/delete/:id', async (req, res) => {
   try {
     const message = await Message.destroy({ where: { roomId: req.params.id } })
+    updateStream()
     res.send(`Message of room ${req.params.id} is deleted`)
   } catch (err) {
     next(err)
