@@ -1,7 +1,8 @@
 const { Message, Room, Player } = require('./model')
 const { Router } = require('express')
-const {updateStream} = require('../index')
 
+
+function factory (updateStream) {
 const router = new Router()
 
 router.post('/message', async (req, res) => {
@@ -19,5 +20,7 @@ router.delete('/message/delete/:id', async (req, res) => {
     res.status(500).send(message)
   }
 })
+  return router
+}
 
-module.exports = router
+module.exports = factory

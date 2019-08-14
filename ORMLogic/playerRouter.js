@@ -3,7 +3,7 @@ const { Router } = require('express')
 const route = new Router()
 const bcrypt = require('bcrypt')
 
-
+function factory (updateStream) {
 route.get('/player', (req, res, next) =>
   Player.findAll()
     .then(players => res.json(players))
@@ -55,6 +55,8 @@ route.delete(
       .catch(next)
   }
 )
+return route
+}
 
 
-module.exports = route
+module.exports = factory

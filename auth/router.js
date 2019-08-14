@@ -4,7 +4,6 @@ const router = new Router()
 const { Player } = require('../ORMLogic/model')
 const bcrypt = require('bcrypt')
 
-
 router.post('/login', (req, res) => {
   //console.log('username', req.body.email, 'password', req.body.password)
   const { playerName, password } = req.body
@@ -47,5 +46,6 @@ router.post('/login', (req, res) => {
       })
   }
 })
+
 
 module.exports = router
