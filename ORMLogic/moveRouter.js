@@ -16,6 +16,8 @@ route.post('/move', async (req, res) => {
   room = await Room.findByPk(roomId, {
     include: [{ model: Player, include: [{ model: Move }] }]
   })
+
+  updateStream(req,res)
   res.send(room)
 })
 
@@ -30,12 +32,3 @@ const winningValidation = (x, y) => {
 }
 
 module.exports = route
-
-// const updateStream = (req, res) => {
-//   const rooms = await Room.findAll({
-//     include: [[Message], [Player]]
-//   })
-//   const data = JSON.stringify(rooms)
-//   stream.updateInit(data)
-//   stream.init(req, res)
-// }

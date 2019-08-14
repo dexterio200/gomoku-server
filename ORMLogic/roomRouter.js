@@ -18,8 +18,7 @@ router.post('/room', async (req, res, next) => {
     const rooms = await Room.findAll({
       include: [Player]
     })
-
-    updateStream(req, res)
+    updateStream()
     res.send(rooms)
   }
   catch (error) {
@@ -34,7 +33,6 @@ router.put('/room/start/:id', async (req, res, next) => {
       include:
         { model: Player }
     })
-  console.log(room)
   if (room.players.length > 1) {
     let firstPlayerToMove = ''
     Math.random() > 0.5 ? firstPlayerToMove = room.players[0].id : firstPlayerToMove = room.players[1].id

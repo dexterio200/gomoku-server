@@ -40,7 +40,7 @@ app.get(
   }
 )
 
- async function updateStream(req,res){
+ async function updateStream(){
   const rooms = await Room.findAll({
     include: [{
       model: Player,
@@ -49,7 +49,7 @@ app.get(
   })
   const data = JSON.stringify(rooms)
   stream.updateInit(data)
-  stream.init(request, response)
+  stream.send(data)
 }
 
 app.listen(port, _ => { console.log(`Server is listening on port ${port}`) })
