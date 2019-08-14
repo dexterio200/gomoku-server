@@ -1,13 +1,13 @@
 const { Router } = require('express')
 const { toJWT, toData } = require('./jwt')
 const router = new Router()
-const {Player} = require('../ORMLogic/model')
+const { Player } = require('../ORMLogic/model')
 const bcrypt = require('bcrypt')
 
 
 router.post('/login', (req, res) => {
   //console.log('username', req.body.email, 'password', req.body.password)
-  const {playerName,password} = req.body
+  const { playerName, password } = req.body
   if (!playerName || !password) {
     res.status(400).send({
       message: 'Please provide a valid email and password'
@@ -29,8 +29,8 @@ router.post('/login', (req, res) => {
         if (bcrypt.compareSync(req.body.password, entity.password)) {
           res.json({
             jwt: toJWT({ playerId: entity.id }),
-            playerId:entity.id,
-            playerName: entity.name
+            playerId: entity.id,
+            playerName: entity.playerName
           })
         }
         else {
@@ -48,4 +48,4 @@ router.post('/login', (req, res) => {
   }
 })
 
-module.exports=router
+module.exports = router

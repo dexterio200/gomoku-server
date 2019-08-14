@@ -12,13 +12,13 @@ route.get('/player', (req, res, next) =>
 
 route.post('/player', async (req, res, next) => {
   try {
-    const { playerName, password } = req.body
-    password = bcrypt.hashSync(req.body.password, 10)
-    const player = await Player.create(playerName, password)
-    res.send(`Player ${player} is created`)
+    let { playerName, password } = req.body
+    password = bcrypt.hashSync(password, 10)
+    const player = await Player.create({playerName, password})
+    res.json(player)
   } catch (err) {
+    res.send(err)
     next(err)
-    res.status.send(err)
   }
 })
 
@@ -35,7 +35,7 @@ route.put(
     password = bcrypt.hashSync(request.body.password, 10)
     Player
       .findByPk(request.params.id)
-      .then(player => player.update({playerName,password}))
+      .then(player => player.update({ playerName, password }))
       .then(player => response.send(player))
       .catch(next)
   }

@@ -51,7 +51,6 @@ router.put('/room/join/:id', async (req, res, next) => {
     include:
       { model: Player }
   })
-  console.log(room)
   const player = await Player.findByPk(req.body.playerId)
   if (room.players.length < 2 && room.status === 'await') {
     await player.update({ roomId:room.id })
