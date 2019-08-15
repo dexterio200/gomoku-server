@@ -35,7 +35,7 @@ function factory(updateStream) {
     if (room.players.length > 1 && room.status === 'await') {
       let firstPlayerToMove = ''
       Math.random() > 0.5 ? firstPlayerToMove = room.players[0].id : firstPlayerToMove = room.players[1].id
-      await room.update({ status: 'started', turn: firstPlayerToMove })
+      await room.update({ status: 'started', turn: firstPlayerToMove,winner:null })
       updateStream()
       res.send('Game Started')
     }
@@ -59,6 +59,7 @@ function factory(updateStream) {
     updateStream()
   })
 
+
   router.put('/room/leave/:id', async (req, res) => {
     const { playerId } = req.body
     //update room status
@@ -71,9 +72,7 @@ function factory(updateStream) {
     //remove playerRoomId
     const player = await Player.findByPk(playerId)
     await player.update({ roomId: null })
-
     updateStream()
-
     res.send({ count })
   })
 
