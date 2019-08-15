@@ -1,4 +1,4 @@
-const { Room, Message, Player } = require('./model')
+const { Room, Message, Player, Move } = require('./model')
 const { Router } = require('express')
 const router = new Router()
 
@@ -14,7 +14,10 @@ function factory(updateStream) {
         status: 'await'
       })
       await player.update({ roomId: room.id }) //Update Room ID to database
+
       updateStream()
+
+      console.log('room test:', room.dataValues)
       res.send(room)
     }
     catch (error) {
@@ -56,6 +59,24 @@ function factory(updateStream) {
     updateStream()
   })
 
+  router.put('/room/leave/:id', async (req, res) => {
+    const { playerId } = req.body
+    //update room status
+    const room = await Room.findByPk(req.params.id)
+    await room.update({ turn: null, status: 'await' })
+    //reinit board
+    const players = await Player.findAll({ where: { roomId: room.id } })
+    const ids = players.map(player => player.id)
+    const count = await Move.destroy({ where: { playerId: ids } })
+    //remove playerRoomId
+    const player = await Player.findByPk(playerId)
+    await player.update({ roomId: null })
+
+    updateStream()
+
+    res.send({ count })
+  })
+
 
   router.delete('/room/delete/:id', async (req, res) => {
     await Room.destroy({ where: { id: req.params.id } })
@@ -65,7 +86,7 @@ function factory(updateStream) {
       }
       )
       .catch(err => console.error(err))
-  }   
+  }
   )
   return router
 }
