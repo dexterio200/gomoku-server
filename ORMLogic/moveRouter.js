@@ -47,7 +47,7 @@ const mapUserMoveToArray = async (currentPlayerId, xCoord, yCoord) => {
   console.log('horizental', horizental, 'verticle', verticle, 'diagonalFromBlToTr',
     diagonalFromBlToTr, 'diagonalFromTlToBr', diagonalFromTlToBr)
   const y = consecutiveCheckOnWining([horizental, verticle, diagonalFromBlToTr, diagonalFromTlToBr])
-  
+  return y
 }
 
 
@@ -86,11 +86,12 @@ function factory(updateStream) {
       await room.update({ turn: nextPlayer.id })
       if (mapUserMoveToArray(playerId, x, y)) {
         room.update({ winner: playerId, status: 'await', turn: null })
+        res.send('winner is you')
         // reinit board
-        const players = await Player.findAll({ where: { roomId } })
-        const ids = players.map(player => player.id)
-        const count = await Move.destroy({ where: { playerId: ids } })
-        res.send('Deleted', { count })
+        // const players = await Player.findAll({ where: { roomId } })
+        // const ids = players.map(player => player.id)
+        // const count = await Move.destroy({ where: { playerId: ids } })
+        // res.send('Deleted', { count })
       }
     }
     room = await Room.findByPk(roomId, {
