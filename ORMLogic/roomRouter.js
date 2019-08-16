@@ -31,10 +31,12 @@ function factory(updateStream) {
         include:
           { model: Player }
       })
+    const ids = room.players.map(p => p.id)
+    await Move.destroy({ where: { playerId: ids } })
     if (room.players.length > 1 && room.status === 'await') {
       let firstPlayerToMove = ''
       Math.random() > 0.5 ? firstPlayerToMove = room.players[0].id : firstPlayerToMove = room.players[1].id
-      await room.update({ status: 'started', turn: firstPlayerToMove,winner:null })
+      await room.update({ status: 'started', turn: firstPlayerToMove, winner: null })
       updateStream()
       res.send('Game Started')
     }
@@ -71,13 +73,13 @@ function factory(updateStream) {
     //remove playerRoomId
     const player = await Player.findByPk(playerId)
     await player.update({ roomId: null })
+    
     //if nobody is in the room, remove room from database
     players = await Player.findAll({ where: { roomId: room.id } })
-    if(players.length===0)
-      {
-        console.log('delete running')
-        await room.destroy({where:{id:req.params.id}})
-      }
+    if (players.length === 0) {
+      await Message.destroy({where:{roomId:room.id}})
+      await room.destroy({ where: { id: req.params.id } })
+    }
     updateStream()
     res.send({ count })
   })

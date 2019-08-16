@@ -74,6 +74,7 @@ const checkOccupied = async (x, y, room) => {
   })
 }
 
+
 function factory(updateStream) {
   const router = new Router()
   router.post('/move', async (req, res) => {
@@ -86,8 +87,10 @@ function factory(updateStream) {
       const nextPlayer = room.players.find((player) => player.id != playerId)
       await room.update({ turn: nextPlayer.id })
       if (await mapUserMoveToArray(playerId, x, y)) {
-        room.update({ winner: playerId, turn:null, status:'await' })
-        res.send('winner is you')
+        const winner = await Player.findByPk(playerId)
+        data = await room.update({ winner:winner.playerName, turn:null, status:'await' })
+        console.log('result room update',data)
+       // res.send('winner is you')
         // reinit board
         // const players = await Player.findAll({ where: { roomId } })
         // const ids = players.map(player => player.id)
