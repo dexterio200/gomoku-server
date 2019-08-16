@@ -4,9 +4,7 @@ const router = new Router()
 const { Player } = require('../ORMLogic/model')
 const bcrypt = require('bcrypt')
 
-
 router.post('/login', (req, res) => {
-  //console.log('username', req.body.email, 'password', req.body.password)
   const { playerName, password } = req.body
   if (!playerName || !password) {
     res.status(400).send({
@@ -23,7 +21,7 @@ router.post('/login', (req, res) => {
       .then(entity => {
         if (!entity) {
           res.status(400).send({
-            message: 'User with that email does not exist'
+            message: 'User with that name does not exist'
           })
         }
         if (bcrypt.compareSync(req.body.password, entity.password)) {
@@ -47,5 +45,6 @@ router.post('/login', (req, res) => {
       })
   }
 })
+
 
 module.exports = router

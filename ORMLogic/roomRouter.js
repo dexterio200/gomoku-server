@@ -1,72 +1,101 @@
-const { Room, Message, Player } = require('./model')
+const { Room, Message, Player, Move } = require('./model')
 const { Router } = require('express')
 const router = new Router()
-const {updateStream} = require('../index')
 
-router.post('/room', async (req, res, next) => {
-  try {
-    const { playerId, name, board_size } = req.body
-    const player = await Player.findByPk(playerId)
-    const room = await Room.create({
-      name,
-      board_size,
-      status: 'await'
-    })
 
-    await player.update({ roomId: room.id }) //Update Room ID to database
+function factory(updateStream) {
+  router.post('/room', async (req, res, next) => {
+    try {
+      const { playerId, name, board_size } = req.body
+      const player = await Player.findByPk(playerId)
+      const room = await Room.create({
+        name,
+        board_size,
+        status: 'await'
+      })
+      await player.update({ roomId: room.id }) //Update Room ID to database
 
-    const rooms = await Room.findAll({
-      include: [Player]
-    })
-    updateStream()
-    res.send(rooms)
+      updateStream()
+      console.log('room test:', room.dataValues)
+      res.send(room)
+    }
+    catch (error) {
+      console.error(error)
+      res.json(error)
+    }
+  })
+
+  router.put('/room/start/:id', async (req, res, next) => {
+    const room = await Room.findByPk(req.params.id,
+      {
+        include:
+          { model: Player }
+      })
+    const ids = room.players.map(p => p.id)
+    await Move.destroy({ where: { playerId: ids } })
+    if (room.players.length > 1 && room.status === 'await') {
+      let firstPlayerToMove = ''
+      Math.random() > 0.5 ? firstPlayerToMove = room.players[0].id : firstPlayerToMove = room.players[1].id
+      await room.update({ status: 'started', turn: firstPlayerToMove, winner: null })
+      updateStream()
+      res.send('Game Started')
+    }
+    else (res.send('cannot start game, not enough player joined'))
   }
-  catch (error) {
-    console.error(error)
-    res.json(error)
-  }
-})
+  )
 
-router.put('/room/start/:id', async (req, res, next) => {
-  const room = await Room.findByPk(req.params.id,
-    {
+  router.put('/room/join/:id', async (req, res, next) => {
+    const room = await Room.findByPk(req.params.id, {
       include:
         { model: Player }
     })
-  if (room.players.length > 1) {
-    let firstPlayerToMove = ''
-    Math.random() > 0.5 ? firstPlayerToMove = room.players[0].id : firstPlayerToMove = room.players[1].id
-    await room.update({ status: 'started', turn: firstPlayerToMove })
-    updateStream(req, res)
-    res.send('Game Started')
-  }
-  else (res.send('cannot start game, not enough player joined'))
-}
-)
-
-router.put('/room/join/:id', async (req, res, next) => {
-  const room = await Room.findByPk(req.params.id, {
-    include:
-      { model: Player }
-  })
-  const player = await Player.findByPk(req.body.playerId)
-  if (room.players.length < 2 && room.status === 'await') {
-    await player.update({ roomId:room.id })
-    res.status(200).send(`Player ${player.playerName} joined`)
-  }
-  else {
-    res.status(405).send('room is full or game started')
-  }
-})
-
-
-router.delete('/room/delete/:id', async (req, res) => {
-  await Room.destroy({ where: { id: req.params.id } })
-    .then(number => {
-      res.send(`${number} record delete`)
+    const player = await Player.findByPk(req.body.playerId)
+    if (room.players.length < 2 && room.status === 'await') {
+      await player.update({ roomId: room.id })
+      res.status(200).send(`Player ${player.playerName} joined`)
     }
-    )
-    .catch(err => console.error(err))
-})
+    else {
+      res.status(405).send('room is full or game started')
+    }
+    updateStream()
+  })
 
-module.exports = router
+
+  router.put('/room/leave/:id', async (req, res) => {
+    const { playerId } = req.body
+    //update room status
+    const room = await Room.findByPk(req.params.id)
+    await room.update({ turn: null, status: 'await' })
+    //reinit board
+    let players = await Player.findAll({ where: { roomId: room.id } })
+    const ids = players.map(player => player.id)
+    const count = await Move.destroy({ where: { playerId: ids } })
+    //remove playerRoomId
+    const player = await Player.findByPk(playerId)
+    await player.update({ roomId: null })
+    
+    //if nobody is in the room, remove room from database
+    players = await Player.findAll({ where: { roomId: room.id } })
+    if (players.length === 0) {
+      await Message.destroy({where:{roomId:room.id}})
+      await room.destroy({ where: { id: req.params.id } })
+    }
+    updateStream()
+    res.send({ count })
+  })
+
+
+  router.delete('/room/delete/:id', async (req, res) => {
+    await Room.destroy({ where: { id: req.params.id } })
+      .then(number => {
+        res.send(`${number} record delete`)
+        updateStream()
+      }
+      )
+      .catch(err => console.error(err))
+  }
+  )
+  return router
+}
+
+module.exports = factory
