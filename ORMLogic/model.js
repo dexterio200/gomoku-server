@@ -11,7 +11,8 @@ const Room = db.define('room', {
   name: {type:Sequelize.STRING,unique:true},
   board_size: Sequelize.INTEGER,
   status: Sequelize.STRING,
-  turn: Sequelize.INTEGER
+  turn: Sequelize.INTEGER,
+  winner: Sequelize.INTEGER
 })
 
 const Message = db.define('message', {

@@ -5,7 +5,6 @@ const { Player } = require('../ORMLogic/model')
 const bcrypt = require('bcrypt')
 
 router.post('/login', (req, res) => {
-  //console.log('username', req.body.email, 'password', req.body.password)
   const { playerName, password } = req.body
   if (!playerName || !password) {
     res.status(400).send({

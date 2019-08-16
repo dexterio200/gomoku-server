@@ -16,7 +16,6 @@ function factory(updateStream) {
       await player.update({ roomId: room.id }) //Update Room ID to database
 
       updateStream()
-
       console.log('room test:', room.dataValues)
       res.send(room)
     }
@@ -66,12 +65,19 @@ function factory(updateStream) {
     const room = await Room.findByPk(req.params.id)
     await room.update({ turn: null, status: 'await' })
     //reinit board
-    const players = await Player.findAll({ where: { roomId: room.id } })
+    let players = await Player.findAll({ where: { roomId: room.id } })
     const ids = players.map(player => player.id)
     const count = await Move.destroy({ where: { playerId: ids } })
     //remove playerRoomId
     const player = await Player.findByPk(playerId)
     await player.update({ roomId: null })
+    //if nobody is in the room, remove room from database
+    players = await Player.findAll({ where: { roomId: room.id } })
+    if(players.length===0)
+      {
+        console.log('delete running')
+        await room.destroy({where:{id:req.params.id}})
+      }
     updateStream()
     res.send({ count })
   })

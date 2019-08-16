@@ -46,24 +46,24 @@ const mapUserMoveToArray = async (currentPlayerId, xCoord, yCoord) => {
   const diagonalFromTlToBr = diagonalLeftUpward.concat(diagonalRightDownward)
   console.log('horizental', horizental, 'verticle', verticle, 'diagonalFromBlToTr',
     diagonalFromBlToTr, 'diagonalFromTlToBr', diagonalFromTlToBr)
-  const y = consecutiveCheckOnWining([horizental, verticle, diagonalFromBlToTr, diagonalFromTlToBr])
+  let y = consecutiveCheckOnWining([horizental, verticle, diagonalFromBlToTr, diagonalFromTlToBr])
+  console.log('mofo', y)
   return y
 }
 
+function checkFive(array) {
+  let count = 0
+  for (let i = 0; i < array.length; i++) {
+    if (array[i])
+      count++
+  }
+  return count >= 5
+}
 
 const consecutiveCheckOnWining = (movesArrays) => {
-  let win = true
-  movesArrays.map((arrayOfMoves) => {
-    for (let q = 0; q < 5; q++) {
-      for (let i = q; i < 5 + q; i++) {
-        win = win && arrayOfMoves[i]
-      }
-      
-      if (win) return win
-      else win = !win
-    }
-  })
-  return movesArrays.some(a=>a.includes(true))
+  const a = movesArrays.some(array => checkFive(array))
+  console.log("mofo check", a)
+  return a
 }
 
 const checkOccupied = async (x, y, room) => {
@@ -81,11 +81,12 @@ function factory(updateStream) {
     let room = await Room.findByPk(roomId, { include: [{ model: Player }] })
 
     if (room.status === "started" && room.turn == playerId) {
+      console.log('aaaaa')
       await Move.create({ playerId, x, y })
       const nextPlayer = room.players.find((player) => player.id != playerId)
       await room.update({ turn: nextPlayer.id })
-      if (mapUserMoveToArray(playerId, x, y)) {
-        room.update({ winner: playerId, status: 'await', turn: null })
+      if (await mapUserMoveToArray(playerId, x, y)) {
+        room.update({ winner: playerId, turn:null, status:'await' })
         res.send('winner is you')
         // reinit board
         // const players = await Player.findAll({ where: { roomId } })
@@ -94,10 +95,10 @@ function factory(updateStream) {
         // res.send('Deleted', { count })
       }
     }
+    updateStream()
     room = await Room.findByPk(roomId, {
       include: [{ model: Player, include: [{ model: Move }] }]
     })
-    updateStream()
     res.send(room)
   })
 
